@@ -1,0 +1,135 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}Rent Now{% endblock title %}
+{% block main-content %}
+<div class="container">
+ <div class="row mt-5">
+  <div class="col-sm-6">
+    <h4>Order Summary</h4>
+    <hr>
+    {% for item  in cart_items %}
+      
+   
+      <div class="card mb-2">
+        <div class="card-body">
+          <h5>Product: {{item.product.title}}</h5>
+          <p>Quantity:{{item.quantity}}</p>
+          <p class="fw-bold">Price:{{item.total_cost}}</p>
+        </div>
+      </div>
+      {% endfor %}
+      <p class="fw-bold" style="color: blue;">Total Cost + Rs.100 = {{totalamount}}</p><br><br>
+     <p style="text-align:center; color:chocolate; font-size:20px;"> <b>Terms and Condition:</b></p>
+   <p style="text-align: center;"> <small>If any damage found,you will be fined accordingly.<br>
+    If not returned on time, you will be fined as per delay.</small></p>
+  </div>
+  <div class="col-sm-4 offset-sm-1">
+    <h4>Select Shipping Address</h4>
+    <hr>
+    <form action="/paymentdone" id = "myform"> 
+     {% for ad in add %}
+      <div class="card">
+        <div class="card-body">
+        <h5>{{ad.name}}</h5>
+        <p>{{ad.locality}}, {{ad.city}}, {{ad.province}}</p>
+        </div>
+      </div>
+        <div class="form-check mt-2 mb-5">
+          <input class="form-check-input" type="radio" name="custid" id="custadd{{forloop.counter}}" 
+          value="{{ad.id}}" required >
+          <label class="form-check-label fw-bold" for="custadd{{forloop.counter}}">
+            Address: {{forloop.counter}} </label>
+        </div>
+        {% endfor %} 
+        <div class="text-end">
+         <button type="submit" class="btn btn-warning px-3 fw-bold">Cash on delivery</button>   
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<br>
+<br>
+<br>
+<br>
+{% endblock main-content %}
+
+{% block payment-gateway %}
+<html>
+<head>
+  <style>
+   #payment-button{
+      background-color: purple;
+      position:absolute;
+      right:400px;
+      bottom: 153px;
+      height: 5.5%;
+      font-weight: bold;
+    }
+  </style>
+    <script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
+</head>
+<body>
+
+    <!-- Place this where you need payment button -->
+    <button type="submit" id="payment-button">Pay with Khalti</button>
+
+    <!-- Place this where you need payment button -->
+    <!-- Paste this code anywhere in you body tag -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        var config = {
+            // replace the publicKey with yours
+            "publicKey": "test_public_key_f14bfe27650e49c2950a6d91be77b64d",
+            "productIdentity": "product_{{product.id}}",
+            "productName": "product_{{product.id}}",
+            "productUrl": "http://127.0.0.1:8000",
+            "paymentPreference": [
+                "KHALTI",
+                "EBANKING",
+                "MOBILE_BANKING",
+                "CONNECT_IPS",
+                "SCT",
+                ],
+            "eventHandler": {
+                onSuccess (payload) {
+                    // hit merchant api for initiating verfication
+                    axios.get("/khalti-verify/",{
+                      params:{
+                        "token": payload.token,
+                        "amount":payload.amount,
+                      }
+                    }).then(function(resp){
+                      if(resp.data.success == true){
+                        alert("Thanks Payment Completed Successfully")
+                        location.href = "/"
+                        document.getElementById("myform").submit();
+                      }else{
+                        alert("Sorry Error Occurred")
+                        location.href = "{{request.build_absolute_uri}}"
+                      }
+                      
+                    })
+                },
+                onError (error) {
+                    console.log(error);
+                },
+                onClose () {
+                    console.log('widget is closing');
+                }
+            }
+        };
+
+        var checkout = new KhaltiCheckout(config);
+        var btn = document.getElementById("payment-button");
+        btn.onclick = function () {
+            // minimum transaction amount must be 10, i.e 1000 in paisa.
+            checkout.show({amount: '{{totalamount}}'*100});
+        }
+    </script>
+    <!-- Paste this code anywhere in you body tag -->
+</body>
+
+</html>
+
+{% endblock payment-gateway %}

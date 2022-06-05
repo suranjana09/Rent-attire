@@ -1,0 +1,73 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}Product Detail{% endblock title %}
+{% block main-content %}
+<div class="container my-5">
+ <div class="row">
+  <div class="col-sm-6 text-center align-self-center">
+   <img src="{{product.product_image.url}}" alt="" class="img-fluid img-thumbnail">
+  </div>
+  <div class="col-sm-5 offset-sm-1">
+   <h2>{{product.title}}</h2>
+   <hr style="color: cornflowerblue;">
+   <p style="font-size: 20px;">{{product.description }}</p> <br>
+   <p style="font-size: 20px;">Rent: Rs.{{product.discounted_price}} <small class="fw-light text-decoration-line-through">Rs.{{product.renting_price}}</small> 
+   </p>
+   <br>
+   <br>
+   <form action="/add-to-cart" method="POST">
+    {% csrf_token %}
+<select name= "rent_duration" id="list" onchange="getSelectValue();" required>
+  <option value = "" disabled selected = "true">Select the renting days</option>
+  <option>4 days</option>
+  <option>8 days</option>
+</select>
+</form>
+<script>
+  function getSelectValue()
+  {
+    var selectedValue = document.getElementById("list").value;
+    console.log(selectedValue);
+  }
+</script>
+  <br>
+  <br>
+  <br>
+  <br>
+    
+    {% if  request.user.is_authenticated %}
+       {% if item_already_in_cart %}
+     <a href="{% url 'showcart'%}" class="btn btn-warning shadow px-5 py-2 ms-4">Go to Cart</a>
+       {% else %}
+    <form action = "/add-to-cart" class="d-inline">
+    <input type="hidden" name = "prod_id" value={{product.id}} id="prod_id">
+    <button type="submit" class ="btn btn-dark shadow px-5 py-2">Add to cart</button>
+   </form>
+   {% endif %}
+   {% endif %}
+
+
+{% if not request.user.is_authenticated %}
+<form action = "/add-to-cart" class="d-inline">
+  <input type="hidden" name = "prod_id" value={{product.id}} id="prod_id">
+  <button type="submit" class ="btn btn-dark shadow px-5 py-2">Add to cart</button>
+ </form>
+  
+{% endif %}
+  
+
+   
+   <a href="{% url 'checkout' %}" class="btn btn-danger shadow px-5 py-2 ms-4">Rent Now</a><br><br>
+   {% comment %}
+    
+  
+  <a href="{% url 'rent-duration' %}" class="btn btn-danger shadow px-5 py-2 ms-4">Rent Duration</a><br><br>
+  {% endcomment %}
+ 
+  <p style="font-size: 20px;"><i><b>Material and Care</b></i></p>
+    <p style="font-size: 20px;"><i>{{product.materialandcare}}</i></p>
+</div>
+  </div>
+ </div>
+</div>
+{% endblock main-content %}

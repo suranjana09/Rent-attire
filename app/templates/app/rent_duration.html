@@ -1,0 +1,14 @@
+{% extends 'app/base.html' %}
+% load static %}
+{% block title %}Rent Duration Detail{% endblock title %}
+{% block main-content %}
+<h1>Renting days</h1>
+<br>
+<br>
+<form action="" method="POST"></form>
+   {% csrf_token %}
+   {{form.as_p}}
+   <input type="submit" value="Submit" class="btn btn-secondary">
+
+  
+{% endblock main-content %}
